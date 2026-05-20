@@ -58,17 +58,17 @@
   <section id="toolbar" class="sticky top-[57px] z-20 border-b border-zinc-800 bg-zinc-950/85 backdrop-blur">
     <div class="mx-auto max-w-7xl px-6 py-3 flex flex-wrap items-center gap-x-5 gap-y-3">
       <div class="ctl-block">
-        <span class="ctl-label">Groups</span>
+        <span class="ctl-label" data-tip="Toggle which physician groups are included in the totals. At least one group must remain active." data-tip-dir="down">Groups</span>
         <div id="ctl-groups" class="flex flex-wrap gap-1.5"></div>
       </div>
 
       <div class="ctl-block">
-        <span class="ctl-label">Segment</span>
+        <span class="ctl-label" data-tip="Overall = all patients. Adults = 21 and older. Peds = under 21 at the transfer date." data-tip-dir="down">Segment</span>
         <div id="ctl-segment" class="segmented" role="tablist"></div>
       </div>
 
       <div class="ctl-block">
-        <span class="ctl-label">Channel</span>
+        <span class="ctl-label" data-tip="All = both SHI and Other transfers. SHI = transfer destination contains &quot;SHI&quot;. Other = all other destinations." data-tip-dir="down">Channel</span>
         <div id="ctl-channel" class="segmented" role="tablist"></div>
       </div>
 
@@ -108,7 +108,7 @@
     <div class="mx-auto max-w-7xl px-6 pb-4 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
       <div class="slider-block">
         <div class="slider-head">
-          <span class="ctl-label">Period</span>
+          <span class="ctl-label" data-tip="Restrict data to a specific month range. Drag either handle to narrow the window." data-tip-dir="down">Period</span>
           <span id="period-readout" class="slider-readout"></span>
         </div>
         <div id="ctl-period" class="dual-range"></div>
@@ -120,7 +120,7 @@
 
       <div class="slider-block">
         <div class="slider-head">
-          <span class="ctl-label">Min&nbsp;total</span>
+          <span class="ctl-label" data-tip="Hide IPAs whose total patient count falls below this threshold. Useful for filtering out low-volume practices." data-tip-dir="down">Min&nbsp;total</span>
           <span id="min-readout" class="slider-readout"></span>
         </div>
         <div id="ctl-min" class="single-range"></div>
@@ -128,7 +128,7 @@
 
       <div class="slider-block">
         <div class="slider-head">
-          <span class="ctl-label">% band</span>
+          <span class="ctl-label" data-tip="Filter to IPAs whose transfer rate (%) falls within this range. The histogram shows how IPAs are distributed across the full 0–100% spectrum." data-tip-dir="down">% band</span>
           <span id="band-readout" class="slider-readout"></span>
         </div>
         <div id="ctl-band" class="dual-range">

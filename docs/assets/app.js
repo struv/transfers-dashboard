@@ -24,6 +24,27 @@ function fmtInt(n)        { return nfInt.format(n || 0); }
 function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 
 /* ------------------------------------------------------------------ */
+/* Tooltip helper                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Wraps `text` in a <span> with a data-tip tooltip.
+ * @param {string} text      - visible label text
+ * @param {string} tip       - tooltip body (plain text)
+ * @param {object} [opts]
+ * @param {string} [opts.dir]   - 'down' opens the bubble below (use near page top)
+ * @param {string} [opts.align] - 'left' right-aligns bubble (use near right edge)
+ * @param {string} [opts.tag]   - wrapper element tag, default 'span'
+ */
+function tip(text, tipText, { dir, align, tag = 'span' } = {}) {
+  const dirAttr   = dir   ? ` data-tip-dir="${dir}"`   : '';
+  const alignAttr = align ? ` data-tip-align="${align}"` : '';
+  // Escape double-quotes in tipText so it's safe inside an attribute
+  const safe = tipText.replace(/"/g, '&quot;');
+  return `<${tag} data-tip="${safe}"${dirAttr}${alignAttr}>${text}</${tag}>`;
+}
+
+/* ------------------------------------------------------------------ */
 /* State                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -251,7 +272,7 @@ function renderGrand(visibleDerivedGroups) {
 
   const cards = [
     kpiCard({
-      label: 'Patients in view',
+      label: tip('Patients in view', 'Total patient count across all visible IPAs and selected groups, after applying the period and min-total filters.'),
       value: fmtInt(acc.total),
       sub: `${ipaCount} IPA${ipaCount === 1 ? '' : 's'} across ${state.groups.size} group${state.groups.size === 1 ? '' : 's'}`,
     }),
@@ -261,12 +282,12 @@ function renderGrand(visibleDerivedGroups) {
       sub: `${nfPct(pct(acc.prominent, acc.total) || 0)} of total`,
     }),
     kpiCard({
-      label: 'SHI share',
+      label: tip('SHI share', 'Share of transferred patients routed to an SHI destination. SHI = transfer destination name contains "SHI".'),
       value: nfPct(pct(acc.shi_t, acc.transferred) || 0),
       sub: `${fmtInt(acc.shi_t)} routed to SHI`,
     }),
     kpiCard({
-      label: 'Peds share',
+      label: tip('Peds share', 'Share of transferred patients who are pediatric (under 21 at the effective transfer date). Unknown DOBs are counted as adults.'),
       value: nfPct(pct(acc.peds_t, acc.transferred) || 0),
       sub: `${fmtInt(acc.peds_t)} under 21, transferred`,
     }),
@@ -330,24 +351,24 @@ function tableHeader(dims) {
   return `
     <thead>
       <tr>
-        <th rowspan="2" class="${sortClass('name')}" data-sort="name">IPA${sortCaret('name')}</th>
+        <th rowspan="2" class="${sortClass('name')}" data-sort="name">${tip('IPA', 'Independent Physician Association — the practice or medical group being tracked.')}${sortCaret('name')}</th>
         <th colspan="3" style="text-align:center;border-right:1px solid rgb(39 39 42)">Overall</th>
         <th colspan="2" class="${dims.dimAdults ? 'dim-col' : ''}" style="text-align:center;border-right:1px solid rgb(39 39 42)">Adults</th>
-        <th colspan="2" class="${dims.dimPeds ? 'dim-col' : ''}" style="text-align:center;border-right:1px solid rgb(39 39 42)">Peds (Under 21)</th>
-        <th colspan="2" class="${dims.dimOther ? 'dim-col' : ''}" style="text-align:center;border-right:1px solid rgb(39 39 42)">Other</th>
-        <th colspan="2" class="${dims.dimShi ? 'dim-col' : ''}" style="text-align:center">SHI</th>
+        <th colspan="2" class="${dims.dimPeds ? 'dim-col' : ''}" style="text-align:center;border-right:1px solid rgb(39 39 42)">${tip('Peds', 'Pediatric patients — anyone under 21 years old at the effective transfer date.')} (Under 21)</th>
+        <th colspan="2" class="${dims.dimOther ? 'dim-col' : ''}" style="text-align:center;border-right:1px solid rgb(39 39 42)">${tip('Other', 'Transfers sent to any destination that does not contain "SHI" in its name.')}</th>
+        <th colspan="2" class="${dims.dimShi ? 'dim-col' : ''}" style="text-align:center">${tip('SHI', 'Transfers routed to a destination whose name contains "SHI" (case-insensitive match on the Transfer To field).')}</th>
       </tr>
       <tr>
         <th class="${sortClass('transferred')}" data-sort="transferred">${prominentColLabel()}${sortCaret('transferred')}</th>
-        <th class="${sortClass('total')}" data-sort="total">Total${sortCaret('total')}</th>
-        <th class="${sortClass('pct')}" data-sort="pct" style="border-right:1px solid rgb(39 39 42)">${pctColLabel()}${sortCaret('pct')}</th>
-        <th class="${dims.dimAdults ? 'dim-col' : ''}">T</th>
+        <th class="${sortClass('total')}" data-sort="total">${tip('Total', 'All non-blank rows with a parseable date in the selected period. Excludes inactive, refused, and no-phone statuses.')}${sortCaret('total')}</th>
+        <th class="${sortClass('pct')}" data-sort="pct" style="border-right:1px solid rgb(39 39 42)">${tip(pctColLabel(), 'Transfer rate — transferred patients ÷ total patients for the current segment and channel selection.')}${sortCaret('pct')}</th>
+        <th class="${dims.dimAdults ? 'dim-col' : ''}">${tip('T', 'Transferred — adults with a populated Transfer To destination.')}</th>
         <th class="${dims.dimAdults ? 'dim-col' : ''}" style="border-right:1px solid rgb(39 39 42)">Total</th>
-        <th class="${dims.dimPeds ? 'dim-col' : ''}">T</th>
+        <th class="${dims.dimPeds ? 'dim-col' : ''}">${tip('T', 'Transferred — pediatric patients (under 21) with a populated Transfer To destination.')}</th>
         <th class="${dims.dimPeds ? 'dim-col' : ''}" style="border-right:1px solid rgb(39 39 42)">Total</th>
-        <th class="${dims.dimOther ? 'dim-col' : ''}">T</th>
+        <th class="${dims.dimOther ? 'dim-col' : ''}">${tip('T', 'Transferred to Other — patients sent to any non-SHI destination.')}</th>
         <th class="${dims.dimOther ? 'dim-col' : ''}" style="border-right:1px solid rgb(39 39 42)">Total</th>
-        <th class="${dims.dimShi ? 'dim-col' : ''}">T</th>
+        <th class="${dims.dimShi ? 'dim-col' : ''}">${tip('T', 'Transferred to SHI — patients routed to an SHI destination.')}</th>
         <th class="${dims.dimShi ? 'dim-col' : ''}">Total</th>
       </tr>
     </thead>`;
@@ -403,7 +424,7 @@ function renderGroupSection({ raw, rows }, idx) {
                    sub: `Across ${rows.length} visible IPA${rows.length === 1 ? '' : 's'}` })}
         ${kpiCard({ small: true, label: grandTitle(), value: fmtInt(t.prominent),
                    sub: transferredPct === null ? '—' : `${nfPct(transferredPct)} of total` })}
-        ${kpiCard({ small: true, label: 'SHI / Peds',
+        ${kpiCard({ small: true, label: tip('SHI / Peds', 'Two rates shown side-by-side: SHI % = SHI transfers ÷ total transferred; Peds % = under-21 transfers ÷ total transferred.'),
                    value: `${shiPct === null ? '—' : nfPct(shiPct)} · ${pedsPct === null ? '—' : nfPct(pedsPct)}`,
                    sub: 'Of transferred patients' })}
       </div>

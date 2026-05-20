@@ -468,3 +468,99 @@ table.transfers-table tbody td.dim-col .dim {
 }
 .transfers-table th.sort-asc  .caret { border-bottom: 4px solid rgb(212 212 216); opacity: 1; }
 .transfers-table th.sort-desc .caret { border-top:    4px solid rgb(212 212 216); opacity: 1; }
+
+/* =========================================================
+   Tooltips
+   ========================================================= */
+
+/* Wrapper element that enables tooltip behaviour */
+[data-tip] {
+  position: relative;
+  cursor: help;
+  /* Subtle dotted underline to hint interactivity */
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: rgb(82 82 91); /* zinc-600 */
+  text-underline-offset: 2px;
+}
+
+/* The tooltip bubble, rendered via ::after */
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  background: rgb(24 24 27); /* zinc-900 */
+  border: 1px solid rgb(63 63 70); /* zinc-700 */
+  color: rgb(212 212 216); /* zinc-300 */
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  padding: 7px 10px;
+  border-radius: 7px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
+  transform: translateX(-50%) translateY(3px);
+  z-index: 100;
+  /* Override any inherited styles from th/kpi-label */
+  font-variant-numeric: normal;
+  text-decoration: none;
+}
+
+/* Arrow pointing down toward the element */
+[data-tip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgb(63 63 70);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+  z-index: 101;
+}
+
+[data-tip]:hover::after,
+[data-tip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+[data-tip]:hover::before {
+  transform: translateX(-50%);
+}
+
+/* Tooltip that opens below (for toolbar items near top of page) */
+[data-tip][data-tip-dir="down"]::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+  transform: translateX(-50%) translateY(-3px);
+}
+[data-tip][data-tip-dir="down"]::before {
+  bottom: auto;
+  top: calc(100% + 3px);
+  border-top-color: transparent;
+  border-bottom-color: rgb(63 63 70);
+  transform: translateX(-50%);
+}
+[data-tip][data-tip-dir="down"]:hover::after {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Left-aligned variant for items at the far right of the screen */
+[data-tip][data-tip-align="left"]::after {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(3px);
+}
+[data-tip][data-tip-align="left"]:hover::after {
+  transform: translateX(0) translateY(0);
+}
