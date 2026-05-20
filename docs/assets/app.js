@@ -784,6 +784,10 @@ async function main() {
   state.monthLoIdx = 0;
   state.monthHiIdx = Math.max(0, MONTHS.length - 1);
 
+  // Populate the period slider's fixed endpoint labels.
+  document.getElementById('period-bound-lo').textContent = monthLabel(0);
+  document.getElementById('period-bound-hi').textContent = monthLabel(MONTHS.length - 1);
+
   // Max total across all IPAs (for min-total slider ceiling).
   MAX_TOTAL = 0;
   for (const g of DATA.groups) for (const r of g.rows) {

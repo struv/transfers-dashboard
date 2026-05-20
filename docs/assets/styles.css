@@ -163,3 +163,308 @@ table.transfers-table tbody tr.row-total td:first-child {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgb(39 39 42); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: rgb(63 63 70); }
+
+/* =========================================================
+   Toolbar / controls
+   ========================================================= */
+
+.ctl-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+}
+.ctl-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgb(113 113 122); /* zinc-500 */
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Chips (groups) */
+.chip {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgb(39 39 42);
+  color: rgb(113 113 122);
+  background: transparent;
+  cursor: pointer;
+  transition: color 150ms ease-out, border-color 150ms ease-out,
+              background-color 150ms ease-out;
+  user-select: none;
+  letter-spacing: 0.01em;
+}
+.chip:hover { color: rgb(212 212 216); border-color: rgb(63 63 70); }
+.chip.on {
+  color: white;
+  border-color: rgb(82 82 91); /* zinc-600 */
+  background: rgb(24 24 27);
+}
+
+/* Segmented controls (segment / channel) */
+.segmented {
+  display: inline-flex;
+  border: 1px solid rgb(39 39 42);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgb(9 9 11); /* near-black, slightly under zinc-950 */
+}
+.segmented button {
+  font-size: 11.5px;
+  padding: 5px 11px;
+  background: transparent;
+  color: rgb(113 113 122);
+  border: none;
+  border-right: 1px solid rgb(39 39 42);
+  cursor: pointer;
+  transition: color 150ms ease-out, background-color 150ms ease-out;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.segmented button:last-child { border-right: none; }
+.segmented button:hover { color: rgb(212 212 216); }
+.segmented button.on {
+  background: rgb(39 39 42);
+  color: white;
+}
+
+/* Text input */
+#ctl-search {
+  background: rgb(9 9 11);
+  border: 1px solid rgb(39 39 42);
+  border-radius: 8px;
+  color: rgb(244 244 245);
+  font-size: 12px;
+  padding: 5px 10px;
+  width: 100%;
+  max-width: 220px;
+  outline: none;
+  transition: border-color 150ms ease-out;
+}
+#ctl-search::placeholder { color: rgb(82 82 91); }
+#ctl-search:focus { border-color: rgb(82 82 91); }
+
+/* Selects */
+#ctl-sort, #ctl-topn {
+  background: rgb(9 9 11);
+  border: 1px solid rgb(39 39 42);
+  border-radius: 8px;
+  color: rgb(212 212 216);
+  font-size: 11.5px;
+  padding: 5px 28px 5px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 150ms ease-out;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2371717a' stroke-width='1.4' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+#ctl-sort:hover, #ctl-topn:hover { border-color: rgb(63 63 70); }
+#ctl-sort:focus, #ctl-topn:focus { border-color: rgb(82 82 91); }
+
+/* Reset button */
+#ctl-reset {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgb(113 113 122);
+  background: transparent;
+  border: 1px solid rgb(39 39 42);
+  border-radius: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+#ctl-reset:hover { color: rgb(212 212 216); border-color: rgb(63 63 70); }
+
+/* Slider blocks */
+.slider-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.slider-readout {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(212 212 216);
+  letter-spacing: 0.01em;
+}
+
+.slider-bounds {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+.slider-bound-label {
+  font-size: 10.5px;
+  color: rgb(113 113 122); /* zinc-500 */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Range slider (single + dual share the look) */
+.single-range, .dual-range {
+  position: relative;
+  height: 26px;
+}
+.dual-range { height: 32px; }
+
+/* The shared track */
+.range-track {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  background: rgb(39 39 42); /* zinc-800 */
+  border-radius: 999px;
+  pointer-events: none;
+}
+.range-fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: rgb(161 161 170); /* zinc-400 */
+  border-radius: 999px;
+  transition: left 120ms ease-out, right 120ms ease-out;
+}
+
+/* Native input range, restyled */
+.single-range input[type="range"],
+.dual-range input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0; left: 0;
+  background: transparent;
+  outline: none;
+  pointer-events: none; /* enabled on thumb */
+  margin: 0;
+}
+.single-range input[type="range"] { z-index: 2; }
+.dual-range input[type="range"]:nth-of-type(1) { z-index: 3; }
+.dual-range input[type="range"]:nth-of-type(2) { z-index: 4; }
+
+/* Thumb — webkit */
+.single-range input[type="range"]::-webkit-slider-thumb,
+.dual-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgb(244 244 245); /* zinc-100 */
+  border: 1px solid rgb(82 82 91); /* zinc-600 */
+  cursor: grab;
+  transition: transform 120ms ease-out, border-color 120ms ease-out;
+}
+.single-range input[type="range"]::-webkit-slider-thumb:hover,
+.dual-range input[type="range"]::-webkit-slider-thumb:hover {
+  border-color: rgb(113 113 122);
+  transform: scale(1.08);
+}
+.single-range input[type="range"]:active::-webkit-slider-thumb,
+.dual-range input[type="range"]:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+/* Thumb — firefox */
+.single-range input[type="range"]::-moz-range-thumb,
+.dual-range input[type="range"]::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgb(244 244 245);
+  border: 1px solid rgb(82 82 91);
+  cursor: grab;
+}
+/* Hide the default firefox track */
+.single-range input[type="range"]::-moz-range-track,
+.dual-range input[type="range"]::-moz-range-track {
+  background: transparent; border: none;
+}
+
+/* Histogram backing the % band slider */
+.band-hist {
+  position: absolute;
+  left: 0; right: 0;
+  top: 4px;
+  bottom: 4px;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.55;
+}
+.band-hist .tick {
+  flex: 1 1 0;
+  min-height: 1px;
+  background: rgb(63 63 70); /* zinc-700 */
+  border-radius: 1px;
+  transition: height 220ms ease-out, background-color 150ms ease-out;
+}
+.band-hist .tick.in {
+  background: rgb(113 113 122); /* zinc-500 */
+}
+
+/* =========================================================
+   Sub-column dimming (when channel ≠ All)
+   ========================================================= */
+
+table.transfers-table .dim-col,
+table.transfers-table thead .dim-col {
+  color: rgb(63 63 70) !important; /* zinc-700 */
+}
+table.transfers-table tbody td.dim-col .dim {
+  color: rgb(39 39 42) !important;
+}
+
+/* Empty state */
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  border: 1px dashed rgb(39 39 42);
+  border-radius: 10px;
+  color: rgb(113 113 122);
+}
+.empty-state .empty-title {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: rgb(161 161 170);
+  margin-bottom: 6px;
+}
+
+/* Sortable header carets (per-table header click) */
+.transfers-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 150ms ease-out;
+}
+.transfers-table th.sortable:hover { color: rgb(212 212 216); }
+.transfers-table th.sortable .caret {
+  display: inline-block;
+  width: 0; height: 0;
+  margin-left: 4px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  opacity: 0.6;
+  vertical-align: middle;
+}
+.transfers-table th.sort-asc  .caret { border-bottom: 4px solid rgb(212 212 216); opacity: 1; }
+.transfers-table th.sort-desc .caret { border-top:    4px solid rgb(212 212 216); opacity: 1; }

@@ -54,6 +54,90 @@
     </div>
   </header>
 
+  <!-- Toolbar -->
+  <section id="toolbar" class="sticky top-[57px] z-20 border-b border-zinc-800 bg-zinc-950/85 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-6 py-3 flex flex-wrap items-center gap-x-5 gap-y-3">
+      <div class="ctl-block">
+        <span class="ctl-label">Groups</span>
+        <div id="ctl-groups" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <div class="ctl-block">
+        <span class="ctl-label">Segment</span>
+        <div id="ctl-segment" class="segmented" role="tablist"></div>
+      </div>
+
+      <div class="ctl-block">
+        <span class="ctl-label">Channel</span>
+        <div id="ctl-channel" class="segmented" role="tablist"></div>
+      </div>
+
+      <div class="ctl-block grow min-w-[160px]">
+        <span class="ctl-label">Filter</span>
+        <input id="ctl-search" type="text" autocomplete="off" spellcheck="false"
+               placeholder="IPA name…" />
+      </div>
+
+      <div class="ctl-block">
+        <span class="ctl-label">Sort</span>
+        <select id="ctl-sort">
+          <option value="total:desc">Total (high → low)</option>
+          <option value="total:asc">Total (low → high)</option>
+          <option value="transferred:desc">Transferred (high → low)</option>
+          <option value="transferred:asc">Transferred (low → high)</option>
+          <option value="pct:desc">% (high → low)</option>
+          <option value="pct:asc">% (low → high)</option>
+          <option value="name:asc">IPA name (A → Z)</option>
+          <option value="name:desc">IPA name (Z → A)</option>
+        </select>
+      </div>
+
+      <div class="ctl-block">
+        <span class="ctl-label">Show</span>
+        <select id="ctl-topn">
+          <option value="0">All IPAs</option>
+          <option value="3">Top 3</option>
+          <option value="5">Top 5</option>
+          <option value="10">Top 10</option>
+        </select>
+      </div>
+
+      <button id="ctl-reset" type="button" title="Reset all filters">Reset</button>
+    </div>
+
+    <div class="mx-auto max-w-7xl px-6 pb-4 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
+      <div class="slider-block">
+        <div class="slider-head">
+          <span class="ctl-label">Period</span>
+          <span id="period-readout" class="slider-readout"></span>
+        </div>
+        <div id="ctl-period" class="dual-range"></div>
+        <div class="slider-bounds">
+          <span id="period-bound-lo" class="slider-bound-label"></span>
+          <span id="period-bound-hi" class="slider-bound-label"></span>
+        </div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-head">
+          <span class="ctl-label">Min&nbsp;total</span>
+          <span id="min-readout" class="slider-readout"></span>
+        </div>
+        <div id="ctl-min" class="single-range"></div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-head">
+          <span class="ctl-label">% band</span>
+          <span id="band-readout" class="slider-readout"></span>
+        </div>
+        <div id="ctl-band" class="dual-range">
+          <div id="band-hist" class="band-hist" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <main class="mx-auto max-w-7xl px-6 py-10">
 
     <!-- Hero / grand summary -->
