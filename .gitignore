@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+.env
+.idea/
+.vscode/
+build/__pycache__/
+~$*.xlsx

@@ -1,0 +1,165 @@
+/* Minimal overrides on top of Tailwind CDN.
+   Strictly zinc-only; nothing flashy. */
+
+:root {
+  color-scheme: dark;
+}
+
+html { font-feature-settings: "cv09", "cv11", "ss01"; }
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Smooth fade-in on mount */
+.mount-fade { animation: mount 220ms ease-out both; }
+@keyframes mount {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tighten table for dense numerics */
+table.transfers-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+table.transfers-table thead th {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(113 113 122); /* zinc-500 */
+  text-align: right;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgb(39 39 42); /* zinc-800 */
+  white-space: nowrap;
+}
+table.transfers-table thead th:first-child { text-align: left; }
+table.transfers-table tbody td {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgb(24 24 27); /* zinc-900 */
+  text-align: right;
+  color: rgb(212 212 216); /* zinc-300 */
+  transition: background-color 150ms ease-out;
+}
+table.transfers-table tbody td:first-child {
+  text-align: left;
+  color: rgb(244 244 245); /* zinc-100 */
+  font-weight: 500;
+}
+table.transfers-table tbody tr:hover td {
+  background-color: rgba(24, 24, 27, 0.5);
+}
+table.transfers-table tbody tr.row-total td {
+  background-color: rgba(39, 39, 42, 0.35);
+  color: white;
+  font-weight: 600;
+  border-top: 1px solid rgb(39 39 42);
+  border-bottom: none;
+}
+table.transfers-table tbody tr.row-total td:first-child {
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Soft section dividers */
+.section-divider {
+  border-top: 1px solid rgb(39 39 42);
+}
+
+/* Percentage cell: number above a 1px bar */
+.pct-cell {
+  position: relative;
+  min-width: 84px;
+}
+.pct-cell .pct-num { color: rgb(244 244 245); font-variant-numeric: tabular-nums; }
+.pct-cell .pct-bar-track {
+  margin-top: 6px;
+  height: 2px;
+  background: rgb(39 39 42); /* zinc-800 */
+  border-radius: 999px;
+  overflow: hidden;
+}
+.pct-cell .pct-bar-fill {
+  display: block;
+  height: 100%;
+  background: rgb(161 161 170); /* zinc-400 */
+  border-radius: 999px;
+  transition: width 220ms ease-out;
+}
+
+/* Muted secondary numbers */
+.dim { color: rgb(113 113 122); }
+
+/* KPI card */
+.kpi {
+  background-color: rgb(24 24 27); /* zinc-900 */
+  border: 1px solid rgb(39 39 42); /* zinc-800 */
+  border-radius: 10px;
+  padding: 18px 20px;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+}
+.kpi:hover { border-color: rgb(63 63 70); /* zinc-700 */ }
+.kpi-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgb(113 113 122);
+  font-weight: 500;
+}
+.kpi-value {
+  margin-top: 6px;
+  color: white;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-sub {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: rgb(113 113 122);
+}
+
+.kpi-sm { padding: 14px 16px; }
+.kpi-sm .kpi-value { font-size: 20px; }
+
+/* Group section header */
+.group-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: -0.01em;
+}
+.group-header .group-meta {
+  color: rgb(113 113 122);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* "New" badge */
+.badge-new {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgb(63 63 70);
+  color: rgb(212 212 216);
+  background: rgb(24 24 27);
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(39 39 42); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(63 63 70); }
