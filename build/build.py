@@ -1,7 +1,8 @@
 """Generate docs/data.json from excel/transfers2026.xlsx.
 
-Reporting period: YTD 2026 (2026-01-01 .. today).
-Methodology: see PLAN.md.
+No hard-coded period filter — all rows with a parseable DATE are included
+and bucketed by YYYY-MM. The frontend period slider lets users slice any
+month range interactively. Methodology: see PLAN.md.
 """
 from __future__ import annotations
 
@@ -26,30 +27,38 @@ def main() -> int:
         return 1
 
     today = dt.date.today()
-    period_start = dt.date(2026, 1, 1)
-    period_end = today
-    period_label = f"YTD 2026 (Jan 1 – {today.strftime('%b %-d, %Y')})"
 
-    groups, warnings, unclassified = aggregate_workbook(
-        str(xlsx), period_start, period_end
-    )
+    # No period filter: pass None so every row with a parseable DATE is kept.
+    # The month-range slider in the frontend handles time-scoping at display
+    # time, so users can freely adjust without needing a rebuild.
+    groups, warnings, unclassified = aggregate_workbook(str(xlsx), None, None)
 
-    # Build grand totals
+    # Build grand totals (scalar). The client recomputes its own grand
+    # rollup when filters change — this is just the unfiltered baseline.
     grand = {
         "total": 0, "transferred": 0, "shi_t": 0, "other_t": 0,
         "adults_t": 0, "adults_total": 0, "peds_t": 0, "peds_total": 0,
+        "adults_shi_t": 0, "adults_other_t": 0,
+        "peds_shi_t": 0, "peds_other_t": 0,
     }
     for g in groups:
         t = g.totals()
         for k in grand:
             grand[k] += getattr(t, k)
 
+    # Months actually present anywhere in the workbook (union, sorted).
+    all_months: set[str] = set()
+    for g in groups:
+        for r in g.rows:
+            all_months.update(r.by_month.keys())
+    months_sorted = sorted(all_months)
+
     out = {
         "generated_at": dt.datetime.now().isoformat(timespec="seconds"),
         "period": {
-            "start": period_start.isoformat(),
-            "end": period_end.isoformat(),
-            "label": period_label,
+            "start": None,
+            "end": today.isoformat(),
+            "label": f"All data (as of {today.strftime('%b %-d, %Y')})",
         },
         "groups": [
             {
@@ -62,6 +71,7 @@ def main() -> int:
             for g in groups
         ],
         "grand": grand,
+        "months": months_sorted,
         "unclassified_sheets": unclassified,
         "methodology": {
             "transferred": "row has a parseable Effective Date",
@@ -82,7 +92,7 @@ def main() -> int:
     ))
 
     # Console summary
-    print(f"Period: {period_start} .. {period_end}")
+    print(f"Period: all (no filter)")
     print(f"Groups: {len(groups)}")
     for g in groups:
         t = g.totals()

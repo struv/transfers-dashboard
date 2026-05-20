@@ -247,6 +247,28 @@ def age_on(dob: _dt.date | None, ref: _dt.date | None) -> int | None:
 
 # --- Aggregates -------------------------------------------------------------
 
+# Counters held inside each monthly bucket. Kept as a flat dict (instead of
+# a nested IpaAgg) because buckets never recurse and the JSON stays compact.
+MONTH_FIELDS: tuple[str, ...] = (
+    "transferred", "total",
+    "adults_t", "adults_total",
+    "peds_t", "peds_total",
+    "other_t", "shi_t",
+    "adults_shi_t", "adults_other_t",
+    "peds_shi_t", "peds_other_t",
+    "unknown_age_t", "unknown_age_total",
+)
+
+
+def _new_month_bucket() -> dict[str, int]:
+    return {k: 0 for k in MONTH_FIELDS}
+
+
+def _merge_month_bucket(dst: dict[str, int], src: dict[str, int]) -> None:
+    for k in MONTH_FIELDS:
+        dst[k] = dst.get(k, 0) + src.get(k, 0)
+
+
 @dataclass
 class IpaAgg:
     ipa: str
@@ -261,6 +283,15 @@ class IpaAgg:
     shi_t: int = 0
     unknown_age_t: int = 0  # transferred rows with no usable DOB
     unknown_age_total: int = 0
+    # Segment x channel cross counters (transferred only).
+    # Unknown-age rows bucket into adults_* to preserve the identity
+    # adults_*_t + peds_*_t == *_t.
+    adults_shi_t: int = 0
+    adults_other_t: int = 0
+    peds_shi_t: int = 0
+    peds_other_t: int = 0
+    # Per-month buckets keyed YYYY-MM. Each value mirrors MONTH_FIELDS.
+    by_month: dict[str, dict[str, int]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -276,6 +307,11 @@ class IpaAgg:
             "shi_t": self.shi_t,
             "unknown_age_t": self.unknown_age_t,
             "unknown_age_total": self.unknown_age_total,
+            "adults_shi_t": self.adults_shi_t,
+            "adults_other_t": self.adults_other_t,
+            "peds_shi_t": self.peds_shi_t,
+            "peds_other_t": self.peds_other_t,
+            "by_month": {k: dict(self.by_month[k]) for k in sorted(self.by_month)},
         }
 
 
@@ -299,6 +335,13 @@ class GroupAgg:
             t.shi_t             += r.shi_t
             t.unknown_age_t     += r.unknown_age_t
             t.unknown_age_total += r.unknown_age_total
+            t.adults_shi_t      += r.adults_shi_t
+            t.adults_other_t    += r.adults_other_t
+            t.peds_shi_t        += r.peds_shi_t
+            t.peds_other_t      += r.peds_other_t
+            for month, bucket in r.by_month.items():
+                dst = t.by_month.setdefault(month, _new_month_bucket())
+                _merge_month_bucket(dst, bucket)
         return t
 
 
@@ -372,19 +415,35 @@ def aggregate_sheet(
             if date_v < period_start or date_v > period_end:
                 continue
 
+        # Resolve the monthly bucket (None if the row has no parseable DATE
+        # and we're not enforcing a period — such rows still affect rollups
+        # but won't show up under a month filter).
+        month_key = date_v.strftime("%Y-%m") if date_v is not None else None
+        bucket = (agg.by_month.setdefault(month_key, _new_month_bucket())
+                  if month_key is not None else None)
+
         # Counted in Total
         agg.total += 1
+        if bucket is not None:
+            bucket["total"] += 1
 
         to_v = row[c_to]
         transferred = _has(to_v) and not is_excluded_status(
             row[c_status] if c_status is not None else None)
 
+        shi = is_shi(to_v) if transferred else False
         if transferred:
             agg.transferred += 1
-            if is_shi(to_v):
+            if bucket is not None:
+                bucket["transferred"] += 1
+            if shi:
                 agg.shi_t += 1
+                if bucket is not None:
+                    bucket["shi_t"] += 1
             else:
                 agg.other_t += 1
+                if bucket is not None:
+                    bucket["other_t"] += 1
 
         # Age split applies to BOTH Total and Transferred (2024 convention:
         # adults_total + peds_total = total).
@@ -395,11 +454,27 @@ def aggregate_sheet(
         if a is None:
             # Bucket unknowns into Adults to keep adults_total+peds_total==total.
             agg.adults_total += 1
+            if bucket is not None:
+                bucket["adults_total"] += 1
             if transferred:
                 agg.adults_t += 1
+                if bucket is not None:
+                    bucket["adults_t"] += 1
+                if shi:
+                    agg.adults_shi_t += 1
+                    if bucket is not None:
+                        bucket["adults_shi_t"] += 1
+                else:
+                    agg.adults_other_t += 1
+                    if bucket is not None:
+                        bucket["adults_other_t"] += 1
             agg.unknown_age_total += 1
+            if bucket is not None:
+                bucket["unknown_age_total"] += 1
             if transferred:
                 agg.unknown_age_t += 1
+                if bucket is not None:
+                    bucket["unknown_age_t"] += 1
             if (warnings is not None and len(warnings) < MAX_WARNINGS
                     and dob is None and row[c_dob] is not None):
                 warnings.append(SheetWarning(
@@ -409,12 +484,36 @@ def aggregate_sheet(
             is_peds = a < 21
             if is_peds:
                 agg.peds_total += 1
+                if bucket is not None:
+                    bucket["peds_total"] += 1
                 if transferred:
                     agg.peds_t += 1
+                    if bucket is not None:
+                        bucket["peds_t"] += 1
+                    if shi:
+                        agg.peds_shi_t += 1
+                        if bucket is not None:
+                            bucket["peds_shi_t"] += 1
+                    else:
+                        agg.peds_other_t += 1
+                        if bucket is not None:
+                            bucket["peds_other_t"] += 1
             else:
                 agg.adults_total += 1
+                if bucket is not None:
+                    bucket["adults_total"] += 1
                 if transferred:
                     agg.adults_t += 1
+                    if bucket is not None:
+                        bucket["adults_t"] += 1
+                    if shi:
+                        agg.adults_shi_t += 1
+                        if bucket is not None:
+                            bucket["adults_shi_t"] += 1
+                    else:
+                        agg.adults_other_t += 1
+                        if bucket is not None:
+                            bucket["adults_other_t"] += 1
 
     return agg
 

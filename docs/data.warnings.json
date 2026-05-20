@@ -152,6 +152,26 @@
   {
     "sheet": "SUPERIOR CHOICE-SAMALA MD",
     "kind": "unparseable_dob",
+    "detail": "row date=None dob='GRACE L PATINO'"
+  },
+  {
+    "sheet": "SUPERIOR CHOICE-SAMALA MD",
+    "kind": "unparseable_dob",
+    "detail": "row date=None dob='ADAM E PATINO'"
+  },
+  {
+    "sheet": "SUPERIOR CHOICE-SAMALA MD",
+    "kind": "unparseable_dob",
     "detail": "row date=2026-02-27 dob='NO CHART'"
+  },
+  {
+    "sheet": "ALLIED DR BEHROOZAN",
+    "kind": "unparseable_dob",
+    "detail": "row date=2025-03-10 dob='\\xa0'"
+  },
+  {
+    "sheet": "ALLIED DR BEHROOZAN",
+    "kind": "unparseable_dob",
+    "detail": "row date=2025-03-10 dob=datetime.time(0, 0)"
   }
 ]
