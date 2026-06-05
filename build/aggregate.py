@@ -43,6 +43,7 @@ EXCLUDED_SHEETS = {
     "HEALTH CARE OPTIONS",
     "HEALTHCARE OPTIONS",
     "CHDP",
+    "HEALTH NET SHI DRS",
     "LA CARE SHI DRS",
     "LA CARE SHI CONTRACTED DOCTORS",
     "MOLINA SHI DRS",
@@ -161,6 +162,7 @@ _DATE_PATTERNS = [
     "%m/%d/%y",
     "%-m/%-d/%Y",
     "%Y-%m-%d",
+    "%Y-%m-%dT%H:%M:%S",
     "%m-%d-%Y",
 ]
 
