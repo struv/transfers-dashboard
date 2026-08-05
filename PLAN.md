@@ -62,6 +62,7 @@ Sheets explicitly excluded from group totals (shared / non-IPA):
 {
   "generated_at": "2026-05-19T..",
   "period": { "start": "2026-01-01", "end": "2026-05-19", "label": "YTD 2026" },
+  "months": ["2026-01", "2026-02", ...],   // every YYYY-MM with data
   "groups": [
     {
       "key": "hanna",
@@ -70,12 +71,24 @@ Sheets explicitly excluded from group totals (shared / non-IPA):
       "rows": [
         { "ipa": "Karing Physicians", "transferred": 12, "total": 45,
           "adults_t": 3, "adults_total": 10, "peds_t": 9, "peds_total": 35,
-          "other_t": 4, "shi_t": 8 }
+          "other_t": 4, "shi_t": 8,
+          // Segment x channel cross counters (transferred only). Identity:
+          //   adults_shi_t + peds_shi_t == shi_t
+          //   adults_other_t + peds_other_t == other_t
+          //   adults_t + peds_t == transferred
+          "adults_shi_t": 2, "adults_other_t": 1,
+          "peds_shi_t": 6,   "peds_other_t": 3,
+          // Per-month buckets keyed YYYY-MM. Each value carries the same
+          // counters as the row top-level (same field names) so the
+          // client can sub-select an arbitrary month range.
+          "by_month": { "2026-01": { "transferred": 4, "total": 12, ... }, ... }
+        }
       ],
       "totals": { /* same keys, summed */ }
     }
   ],
-  "grand": { "total": ..., "transferred": ..., "shi_t": ... }
+  "grand": { "total": ..., "transferred": ..., "shi_t": ...,
+             "adults_shi_t": ..., "peds_shi_t": ..., ... }
 }
 ```
 
@@ -87,12 +100,32 @@ group/IPA `total` (denominator) — matching the 2024 sheet's convention.
 - Dark, `zinc-950` canvas, `zinc-900` cards, `zinc-800` borders, Inter
   font, white headings, `zinc-400` body, `zinc-500` micro-labels.
 - Sticky top bar: title, period, generated-at.
-- 4 grand-summary KPI cards.
+- Sticky toolbar with interactive controls (see below).
+- 4 grand-summary KPI cards (recomputed from the visible slice).
 - Five sections in order — Hanna, Samala, La Mirada, Benny B, Sakhai —
   each: 3 KPI cards + 12-column table with inline `bg-zinc-700`
   percent bars.
 - Footer: methodology note + repo link.
 - No charts, no framework, no build step. Tailwind via CDN.
+
+### Toolbar controls
+
+| Control            | Effect                                                                 |
+|--------------------|------------------------------------------------------------------------|
+| Group chips        | Toggle which of the 5 groups contribute to grand totals + sections.    |
+| Segment            | Overall / Adults / Peds. Re-pins numerator + denominator.              |
+| Channel            | All / SHI / Other. Re-pins the prominent count + % column.             |
+| Filter (text)      | Substring match on IPA name.                                           |
+| Sort               | Default sort for every group's table (overridable per-table on click). |
+| Show               | Top-N cap per group after sort.                                        |
+| Period (dual)      | Month-range slider quantized to entries in `data.months`.              |
+| Min total (single) | Hides IPAs whose visible `total` is below threshold.                   |
+| % band (dual)      | Hides IPAs whose visible `pct` falls outside `[lo, hi]`. Backed by a   |
+|                    | live histogram of the current distribution.                            |
+
+The channel and segment selectors **dim** the non-active sub-columns of
+the per-group table rather than collapsing them, so the underlying counts
+remain visible while the focus shifts.
 
 ## Deploy
 

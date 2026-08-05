@@ -60,6 +60,7 @@ const state = {
   sortBy: 'total',            // 'total' | 'transferred' | 'pct' | 'name'
   sortDir: 'desc',            // 'asc' | 'desc'
   topN: 0,                    // 0 == all
+  dedupe: false,
   minTotal: 0,
   bandLo: 0, bandHi: 1,       // 0..1 fraction
   monthLoIdx: 0,
@@ -74,6 +75,7 @@ const DEFAULT_STATE = () => ({
   sortBy: 'total',
   sortDir: 'desc',
   topN: 0,
+  dedupe: false,
   minTotal: 0,
   bandLo: 0, bandHi: 1,
   monthLoIdx: 0,
@@ -143,6 +145,9 @@ function deriveRow(rawRow) {
   else                                 prominent = transferred;
 
   return {
+    _groupKey: rawRow._groupKey,
+    _groupIdx: rawRow._groupIdx,
+    _rowIdx: rawRow._rowIdx,
     ipa: rawRow.ipa,
     sheet: rawRow.sheet,
     total, transferred, shi_t, other_t,
@@ -171,6 +176,12 @@ function passesFilters(r) {
   return true;
 }
 
+function passesFiltersWithoutBand(r) {
+  if (r.total < state.minTotal) return false;
+  const q = state.search.trim().toLowerCase();
+  return !(q && !r.ipa.toLowerCase().includes(q));
+}
+
 const SORT_KEYFN = {
   total:       (r) => r.total,
   transferred: (r) => r.prominent,
@@ -191,6 +202,40 @@ function sortRows(rows) {
     return sorted.slice(0, state.topN);
   }
   return sorted;
+}
+
+function dedupeKey(r) {
+  return r.ipa.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function betterDedupeRow(a, b) {
+  for (const key of ['total', 'prominent', 'transferred']) {
+    if (a[key] !== b[key]) return a[key] > b[key] ? a : b;
+  }
+  if (a._groupIdx !== b._groupIdx) return a._groupIdx < b._groupIdx ? a : b;
+  return a._rowIdx <= b._rowIdx ? a : b;
+}
+
+function removeDuplicateRows(groups) {
+  if (!state.dedupe) return groups;
+
+  const keepByName = new Map();
+  for (const { rows } of groups) {
+    for (const r of rows) {
+      const key = dedupeKey(r);
+      const prev = keepByName.get(key);
+      keepByName.set(key, prev ? betterDedupeRow(prev, r) : r);
+    }
+  }
+
+  const keepIds = new Set(
+    Array.from(keepByName.values(), r => `${r._groupKey}:${r._rowIdx}`)
+  );
+
+  return groups.map(g => ({
+    raw: g.raw,
+    rows: g.rows.filter(r => keepIds.has(`${r._groupKey}:${r._rowIdx}`)),
+  }));
 }
 
 /* ------------------------------------------------------------------ */
@@ -440,14 +485,16 @@ function renderGroupSection({ raw, rows }, idx) {
 
 function render() {
   // Build derived groups (after group filter + segment + channel + period).
-  const derivedGroups = DATA.groups
+  const filteredGroups = DATA.groups
     .filter(g => state.groups.has(g.key))
     .map(g => ({
       raw: g,
-      // pre-filter rows (we keep group totals over the visible-after-filter
-      // set, matching the "what you see is what you sum" expectation)
-      rows: sortRows(g.rows.map(deriveRow).filter(passesFilters)),
+      // Pre-filter rows. Group totals are over the visible-after-filter set,
+      // matching the "what you see is what you sum" expectation.
+      rows: g.rows.map(deriveRow).filter(passesFilters),
     }));
+  const derivedGroups = removeDuplicateRows(filteredGroups)
+    .map(g => ({ raw: g.raw, rows: sortRows(g.rows) }));
 
   renderGrand(derivedGroups);
 
@@ -494,6 +541,14 @@ function render() {
   document.querySelectorAll('#ctl-groups .chip').forEach(c => {
     c.classList.toggle('on', state.groups.has(c.dataset.key));
   });
+  const dedupe = document.getElementById('ctl-dedupe');
+  if (dedupe) {
+    dedupe.classList.toggle('on', state.dedupe);
+    dedupe.textContent = state.dedupe ? 'Show duplicates' : 'Remove duplicates';
+    dedupe.title = state.dedupe
+      ? 'Show duplicate IPA names across groups'
+      : 'Hide duplicate IPA names across groups';
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -567,13 +622,14 @@ function updateHistogram(derivedGroups) {
   // raw data with the band momentarily disabled.
   // (Cheap: re-derive without the band filter.)
   const ghostCounts = new Array(HIST_BUCKETS).fill(0);
-  for (const g of DATA.groups) {
-    if (!state.groups.has(g.key)) continue;
-    for (const raw of g.rows) {
-      const r = deriveRow(raw);
-      if (r.total < state.minTotal) continue;
-      const q = state.search.trim().toLowerCase();
-      if (q && !r.ipa.toLowerCase().includes(q)) continue;
+  const ghostGroups = removeDuplicateRows(DATA.groups
+    .filter(g => state.groups.has(g.key))
+    .map(g => ({
+      raw: g,
+      rows: g.rows.map(deriveRow).filter(passesFiltersWithoutBand),
+    })));
+  for (const { rows } of ghostGroups) {
+    for (const r of rows) {
       if (r.pct === null) continue;
       const idx = clamp(Math.floor(r.pct * HIST_BUCKETS), 0, HIST_BUCKETS - 1);
       ghostCounts[idx] += 1;
@@ -703,6 +759,12 @@ function buildControls() {
   topn.value = String(state.topN);
   topn.addEventListener('change', () => { state.topN = Number(topn.value); render(); });
 
+  // Duplicate IPA toggle
+  document.getElementById('ctl-dedupe').addEventListener('click', () => {
+    state.dedupe = !state.dedupe;
+    render();
+  });
+
   // Reset
   document.getElementById('ctl-reset').addEventListener('click', () => {
     Object.assign(state, DEFAULT_STATE());
@@ -811,9 +873,14 @@ async function main() {
 
   // Max total across all IPAs (for min-total slider ceiling).
   MAX_TOTAL = 0;
-  for (const g of DATA.groups) for (const r of g.rows) {
-    if (r.total > MAX_TOTAL) MAX_TOTAL = r.total;
-  }
+  DATA.groups.forEach((g, groupIdx) => {
+    g.rows.forEach((r, rowIdx) => {
+      r._groupKey = g.key;
+      r._groupIdx = groupIdx;
+      r._rowIdx = rowIdx;
+      if (r.total > MAX_TOTAL) MAX_TOTAL = r.total;
+    });
+  });
   // Round up to a tidy ceiling
   if (MAX_TOTAL > 0) {
     const pow = Math.pow(10, Math.floor(Math.log10(MAX_TOTAL)));

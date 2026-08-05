@@ -6,6 +6,12 @@ groups (Hanna, Samala, La Mirada, Benny B, Sakhai).
 
 Live site: **https://struv.github.io/transfers-dashboard/**
 
+Interactive: the toolbar exposes group chips, segment (Adults / Peds),
+channel (SHI / Other), an IPA filter, a sortable + top-N selector, and
+three sliders — month-range period, min-total floor, and a `%` band
+(with a live histogram). All filtering is client-side; the build emits
+monthly buckets so the period slider doesn't require re-running Python.
+
 ## Layout
 
 ```

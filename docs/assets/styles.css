@@ -269,8 +269,9 @@ table.transfers-table tbody tr.row-total td:first-child {
 #ctl-sort:hover, #ctl-topn:hover { border-color: rgb(63 63 70); }
 #ctl-sort:focus, #ctl-topn:focus { border-color: rgb(82 82 91); }
 
-/* Reset button */
-#ctl-reset {
+/* Toolbar action buttons */
+#ctl-reset,
+#ctl-dedupe {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -282,7 +283,16 @@ table.transfers-table tbody tr.row-total td:first-child {
   cursor: pointer;
   transition: color 150ms ease-out, border-color 150ms ease-out;
 }
-#ctl-reset:hover { color: rgb(212 212 216); border-color: rgb(63 63 70); }
+#ctl-reset:hover,
+#ctl-dedupe:hover {
+  color: rgb(212 212 216);
+  border-color: rgb(63 63 70);
+}
+#ctl-dedupe.on {
+  color: white;
+  border-color: rgb(82 82 91);
+  background: rgb(24 24 27);
+}
 
 /* Slider blocks */
 .slider-block {
